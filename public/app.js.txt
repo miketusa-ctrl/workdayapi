@@ -1,0 +1,111 @@
+(() => {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  if ($('mcp-config')) $('mcp-config').textContent = JSON.stringify({ mcpServers: { workdayapi: { type: 'http', url: `${location.origin}/mcp` } } }, null, 2);
+  const DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+  let mode = 'add';
+  let countries = [];
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const today = new Date();
+  const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+  async function api(path) {
+    const r = await fetch(path, { headers: { accept: 'application/json' } });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error((j.error && j.error.message) || `HTTP ${r.status}`);
+    return j;
+  }
+
+  function weekendBoxes() {
+    $('weekend').innerHTML = DAYS.map((d) => `<label><input type="checkbox" value="${d}" ${d === 'sat' || d === 'sun' ? 'checked' : ''}>${d}</label>`).join('');
+  }
+  const weekendParam = () => {
+    const v = [...$('weekend').querySelectorAll('input:checked')].map((i) => i.value);
+    return v.length ? v.join(',') : 'none';
+  };
+
+  function setMode(m) {
+    mode = m;
+    $('mode-add').setAttribute('aria-pressed', String(m === 'add'));
+    $('mode-between').setAttribute('aria-pressed', String(m === 'between'));
+    $('days-wrap').hidden = m !== 'add';
+    $('to-wrap').hidden = m !== 'between';
+    $('date-label').textContent = m === 'add' ? 'Start date' : 'From date';
+    $('result').innerHTML = '';
+  }
+
+  function regionOptions() {
+    const c = countries.find((x) => x.code === $('country').value);
+    const regs = (c && c.regions) || [];
+    $('region-wrap').hidden = !regs.length;
+    const def = c && c.default_region;
+    $('region').innerHTML = (def ? '' : '<option value="">Nationwide only</option>') +
+      regs.map((r) => `<option value="${esc(r.code)}" ${r.code === def ? 'selected' : ''}>${esc(r.name)}</option>`).join('');
+  }
+
+  function common() {
+    const p = new URLSearchParams({ country: $('country').value });
+    if (!$('region-wrap').hidden && $('region').value) p.set('region', $('region').value);
+    const w = weekendParam();
+    if (w !== 'sat,sun') p.set('weekend', w);
+    return p;
+  }
+
+  async function loadHolidays() {
+    const d = $('date').value;
+    if (!d || !$('country').value) return;
+    const y = d.slice(0, 4);
+    const p = common();
+    p.delete('weekend');
+    p.set('year', y);
+    const name = $('country').selectedOptions[0] ? $('country').selectedOptions[0].textContent : '';
+    $('hol-title').textContent = `Public holidays ${y}: ${name}`;
+    try {
+      const j = await api(`/v1/holidays?${p}`);
+      const rows = j.holidays.map((h) => `<tr><td>${esc(h.date)}${h.observed ? `<br><span class="muted">observed ${esc(h.observed)}</span>` : ''}</td><td>${esc(h.name)}${h.local_name ? `<br><span class="muted">${esc(h.local_name)}</span>` : ''}</td><td><span class="tag ${esc(h.type)}">${esc(h.type)}</span></td></tr>`).join('');
+      $('holidays').innerHTML = `<table><thead><tr><th>Date</th><th>Holiday</th><th>Type</th></tr></thead><tbody>${rows}</tbody></table>` +
+        `<p class="muted">${esc(j.scope)}.${j.notes ? ' ' + esc(j.notes) : ''}</p><p class="muted">"observance" days are listed for information and count as business days.</p>`;
+    } catch (e) { $('holidays').textContent = e.message; }
+  }
+
+  async function calc(ev) {
+    if (ev) ev.preventDefault();
+    const p = common();
+    $('go').disabled = true;
+    try {
+      if (mode === 'add') {
+        p.set('date', $('date').value); p.set('days', $('days').value || '0');
+        const j = await api(`/v1/add?${p}`);
+        const sk = j.skipped_holidays.length ? `<p class="muted">Holidays skipped: ${j.skipped_holidays.map((h) => `${esc(h.date)} ${esc(h.name)}`).join('; ')}</p>` : '';
+        $('result').innerHTML = `<div class="big">${esc(j.result)}</div><div>${esc(j.result_weekday)}: ${esc(j.days)} business days from ${esc(j.date)} (${esc(j.calendar_days)} calendar days)</div>${sk}`;
+      } else {
+        p.set('from', $('date').value); p.set('to', $('to').value);
+        const j = await api(`/v1/between?${p}`);
+        $('result').innerHTML = `<div class="big">${esc(j.business_days)} business days</div><div>${esc(j.calendar_days)} calendar days after ${esc(j.from)} up to ${esc(j.to)}: ${esc(j.weekend_days)} weekend days, ${esc(j.holiday_days)} holidays.</div>` +
+          (j.holidays.length ? `<p class="muted">${j.holidays.map((h) => `${esc(h.date)} ${esc(h.name)}`).join('; ')}</p>` : '');
+      }
+    } catch (e) { $('result').innerHTML = `<span class="bad">${esc(e.message)}</span>`; }
+    $('go').disabled = false;
+  }
+
+  async function init() {
+    weekendBoxes();
+    $('date').value = iso(today);
+    const t = new Date(today); t.setDate(t.getDate() + 30); $('to').value = iso(t);
+    $('mode-add').onclick = () => setMode('add');
+    $('mode-between').onclick = () => setMode('between');
+    $('calc').addEventListener('submit', calc);
+    $('country').onchange = () => { regionOptions(); loadHolidays(); };
+    $('region').onchange = loadHolidays;
+    $('date').onchange = loadHolidays;
+    try {
+      const j = await api('/v1/countries');
+      countries = j.countries;
+      const guess = (navigator.language || 'en-US').split('-')[1];
+      $('country').innerHTML = countries.map((c) => `<option value="${esc(c.code)}" ${c.code === (countries.some((x) => x.code === guess) ? guess : 'US') ? 'selected' : ''}>${esc(c.name)}</option>`).join('');
+      regionOptions();
+      loadHolidays();
+    } catch (e) { $('result').textContent = e.message; }
+  }
+  init();
+})();

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WorkdayAPI: business-day calculator and holiday API</title>
+<meta name="description" content="Free business-day calculator: add N working days or count working days between two dates for 29 countries, with public holidays. JSON API for invoicing, SLA and shipping deadlines.">
+<link rel="stylesheet" href="/style.css">
+<link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt">
+<link rel="service-desc" type="application/json" href="/openapi.json" title="OpenAPI 3.1">
+</head>
+<body>
+<header><a href="/">WorkdayAPI</a><nav><a href="/">Calculator</a><a href="/docs">API docs</a><a href="/docs#pricing">Pricing</a></nav></header>
+<main>
+<h1>Business-day calculator</h1>
+<p class="lead">Add working days or count working days between two dates, skipping weekends and public holidays. 29 countries, years 2020-2035. Plain calendar dates, no time zones.</p>
+
+<div class="card">
+  <div class="tabs" role="group" aria-label="Mode">
+    <button type="button" id="mode-add" aria-pressed="true">Add business days</button>
+    <button type="button" id="mode-between" aria-pressed="false">Days between</button>
+  </div>
+  <form id="calc" class="grid" novalidate>
+    <div><label for="country">Country</label><select id="country" required></select></div>
+    <div id="region-wrap" hidden><label for="region">Region</label><select id="region"></select></div>
+    <div><label for="date" id="date-label">Start date</label><input type="date" id="date" min="2020-01-01" max="2035-12-31" required></div>
+    <div id="days-wrap"><label for="days">Business days (negative = back)</label><input type="number" id="days" value="10" min="-2500" max="2500" step="1"></div>
+    <div id="to-wrap" hidden><label for="to">End date</label><input type="date" id="to" min="2020-01-01" max="2035-12-31"></div>
+    <div><label>Weekend</label><div class="wk" id="weekend"></div></div>
+    <div class="self-end"><button type="submit" id="go">Calculate</button></div>
+  </form>
+  <div id="result" aria-live="polite"></div>
+</div>
+
+<div class="card">
+  <h2 class="mt0" id="hol-title">Public holidays</h2>
+  <div id="holidays" class="muted">Pick a country and date.</div>
+</div>
+
+<div class="card">
+  <h2 class="mt0">Use it from code</h2>
+<pre>curl "{{ORIGIN}}/v1/add?date=2026-10-05&amp;days=10&amp;country=US"
+curl "{{ORIGIN}}/v1/is-business-day?date=2026-12-26&amp;country=GB"
+curl "{{ORIGIN}}/v1/between?from=2026-12-01&amp;to=2026-12-31&amp;country=FR"</pre>
+  <p>Free: 1,000 API calls a month with a free key. See the <a href="/docs">API docs</a>.</p>
+</div>
+
+<section id="agents" class="card"><h2 class="mt0">For AI agents (MCP)</h2>
+<p>WorkdayAPI is also a remote <a href="https://modelcontextprotocol.io/" target="_blank" rel="noopener noreferrer">Model Context Protocol</a> (MCP) server with five read-only tools: get_holidays, is_business_day, add_business_days, business_days_between and list_countries. Most MCP clients accept this config; some use a different format (for example, VS Code uses a <code>servers</code> key). Clients with a settings screen just need the URL <code>{{ORIGIN}}/mcp</code>. Same limits and free keys as the JSON API.</p>
+<pre><code id="mcp-config">{ "mcpServers": { "workdayapi": { "type": "http", "url": "{{ORIGIN}}/mcp" } } }</code></pre>
+<p class="muted">Machine-readable docs: <a href="/llms.txt">llms.txt</a> · <a href="/openapi.json">OpenAPI 3.1 spec</a></p></section>
+</main>
+<footer>
+  <p><strong>Data provided as-is.</strong> Holiday rules are compiled by WorkdayAPI from official government sources (see <a href="/docs#data">data sources</a>), but governments add one-off holidays and regional rules vary. Check critical deadlines against the official source. No warranty. <strong>Not legal, payroll or financial advice.</strong> Contact: <a href="mailto:digitalpromohub.support@gmail.com">digitalpromohub.support@gmail.com</a></p>
+</footer>
+<script src="/app.js"></script>
+</body>
+</html>

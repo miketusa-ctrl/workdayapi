@@ -1,0 +1,15 @@
+{
+  "name": "workdayapi",
+  "version": "0.2.1",
+  "private": true,
+  "description": "Business-day and public-holiday math API (Cloudflare Workers): add business days, days between, holidays for 29 countries",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}

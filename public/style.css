@@ -1,0 +1,20 @@
+:root{--bg:#f7f8fa;--fg:#14171f;--muted:#5b6474;--card:#fff;--line:#e2e6ee;--acc:#1f6feb;--ok:#137a3a;--bad:#b42318;--warn:#8a5a00}
+*{box-sizing:border-box}body{margin:0;font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--fg)}
+header,main,footer{max-width:960px;margin:0 auto;padding:16px}
+header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+header a{color:var(--fg);text-decoration:none;font-weight:600}nav a{margin-left:16px;font-weight:500;color:var(--acc)}
+h1{font-size:1.9rem;margin:.4em 0 .2em}h2{font-size:1.25rem;margin-top:1.6em}.lead{color:var(--muted);margin-top:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin:16px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:4px}
+input,select,button{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;width:100%;background:#fff}
+button{background:var(--acc);color:#fff;border:0;cursor:pointer;font-weight:600}button:disabled{opacity:.6}
+.tabs{display:flex;gap:8px;margin-bottom:12px}.tabs button{width:auto;background:#e8eefc;color:var(--acc)}.tabs button[aria-pressed=true]{background:var(--acc);color:#fff}
+.wk{display:flex;gap:10px;flex-wrap:wrap}.wk label{display:flex;gap:4px;align-items:center;color:var(--fg);font-size:.9rem}.wk input{width:auto}
+.mt0{margin-top:0}.self-end{align-self:end}#result{font-size:1.1rem;margin-top:14px}.big{font-size:1.6rem;font-weight:700}.ok{color:var(--ok)}.bad{color:var(--bad)}.muted{color:var(--muted);font-size:.9rem}
+table{width:100%;border-collapse:collapse;font-size:.95rem}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}th{color:var(--muted);font-weight:600}
+.tag{display:inline-block;font-size:.75rem;padding:1px 6px;border-radius:6px;background:#eef2f7;color:var(--muted)}.tag.bank{background:#fff4e0;color:var(--warn)}
+code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88rem}pre{background:#0f1720;color:#e6edf3;padding:12px;border-radius:8px;overflow:auto}
+.price{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.price .card{margin:0}.soon{color:var(--warn);font-weight:600}
+footer{color:var(--muted);font-size:.85rem;border-top:1px solid var(--line);margin-top:32px}
+@media (max-width:560px){#mcp-config{white-space:pre-wrap;word-break:break-all}}
